@@ -1,0 +1,80 @@
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SSE Chat</title>
+</head>
+<body>
+    <h1>SSE Chat</h1>
+    <div id="chat-container">
+        <ul id="chat-messages"></ul>
+    </div>
+    <form id="message-form">
+        <input type="text" id="message-input" placeholder="Enter your message">
+        <button type="submit">Send</button>
+    </form>
+
+    <script>
+        // Initialize EventSource
+        const userID = Math.floor(Math.random() * 4) + 1;
+
+        const source = new EventSource(`/events?id=${userID}`);
+
+        // Event listener for receiving SSE messages
+        source.addEventListener('message', function (event) {
+            console.log("re mesage", event)
+            console.log("message", event.data)
+            const message = JSON.parse(event.data);
+            console.log("data message after parsing", message)
+            displayMessage(message);
+        });
+
+        // Event listener for form submission
+        const messageForm = document.getElementById('message-form');
+        messageForm.addEventListener('submit',function (event) {
+            event.preventDefault();
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value;
+            messageInput.value = '';
+            sendMessage(message);
+        });
+
+        // Display a new message in the chat
+        function displayMessage(message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const newMessage = document.createElement('li');
+            newMessage.textContent = message.data;
+            chatMessages.appendChild(newMessage);
+        }
+
+        // Send a message to the server
+        function sendMessage(message) {
+            const projectID = parseInt(prompt('Enter project ID (1-2):'));
+
+            const url = `/post?projectid=${projectID}`;
+            const formData = new FormData();
+            formData.append('message', message);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData
+            })
+            .then(function (response) {
+                if (response.ok) {
+                    console.log('Message sent successfully');
+                } else {
+                    console.error('Failed to send message');
+                }
+            })
+            .catch(function (error) {
+                console.error('An error occurred while sending the message:', error);
+            });
+        }
+    </script>
+</body>
+</html> 
+
+
+
+
